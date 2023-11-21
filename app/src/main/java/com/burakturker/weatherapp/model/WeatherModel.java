@@ -5,26 +5,26 @@ import com.google.gson.annotations.SerializedName;
 public class WeatherModel {
 
     @SerializedName("temperature")
-    String Derece;
+    public String Derece;
 
     @SerializedName("wind_speed")
-    String ruzgarHiz;
+    public String ruzgarHiz;
 
     @SerializedName("wind_degree")
-    String ruzgarDerece;
+    public   String ruzgarDerece;
 
     @SerializedName("pressure")
-    String basinc;
+     public String basinc;
 
     @SerializedName("humidity")
-    String nem;
+    public String nem;
 
     @SerializedName("weather_descriptions")
-    String havaDurumAciklama;
+    public String havaDurumAciklama;
 
     @SerializedName("name")
-    String isim;
+    public String isim;
 
     @SerializedName("weather_icons")
-    String havaDurumIcon;
+    public String havaDurumIcon;
 }
