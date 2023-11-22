@@ -80,6 +80,7 @@ public class MainActivity extends AppCompatActivity {
         if (!cityName.isEmpty()) {
             Call<WeatherModel> call = weatherApi.getData(cityName);
             call.enqueue(new Callback<WeatherModel>() {
+
                 @Override
                 public void onResponse(Call<WeatherModel> call, Response<WeatherModel> response) {
                     isLoading = false;
@@ -87,6 +88,10 @@ public class MainActivity extends AppCompatActivity {
                     if (response.isSuccessful()) {
                         WeatherModel weatherModel = response.body();
                         if (weatherModel != null) {
+                            Log.d("WeatherData", "City: " + weatherModel.isim);
+                            Log.d("WeatherData", "Temperature: " + weatherModel.Derece);
+                            Log.d("WeatherData", "Icon URL: " + weatherModel.havaDurumIcon);
+
                             weatherModels.clear();
                             weatherModels.add(weatherModel);
                             recyclerViewAdapter.notifyDataSetChanged();
@@ -97,6 +102,7 @@ public class MainActivity extends AppCompatActivity {
                         Log.e("RetrofitError", "API çağrısı başarısız: " + response.code());
                     }
                 }
+
 
                 @Override
                 public void onFailure(Call<WeatherModel> call, Throwable t) {
