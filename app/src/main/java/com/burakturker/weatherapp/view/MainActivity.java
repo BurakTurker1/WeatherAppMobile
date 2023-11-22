@@ -1,3 +1,4 @@
+// MainActivity.java
 package com.burakturker.weatherapp.view;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -5,6 +6,11 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
 
 import com.burakturker.weatherapp.R;
 import com.burakturker.weatherapp.adapter.RecyclerViewAdapter;
@@ -23,18 +29,22 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MainActivity extends AppCompatActivity {
-    ArrayList<WeatherModel> weatherModels;
-    private String BASE_URL = "http://api.weatherstack.com/";
-    Retrofit retrofit;
-    RecyclerView recyclerView;
-    RecyclerViewAdapter recyclerViewAdapter;
+    private ArrayList<WeatherModel> weatherModels;
+    private String BASE_URL = "http://api.weatherapi.com/v1/";
+    private Retrofit retrofit;
+    private RecyclerView recyclerView;
+    private RecyclerViewAdapter recyclerViewAdapter;
+    private EditText editTextCity;  // EditText'i tanımladık
+    private Button loadButton;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         recyclerView = findViewById(R.id.recyclerView);
-
+        weatherModels = new ArrayList<>();
+        editTextCity = findViewById(R.id.editTextCity);
 
         Gson gson = new GsonBuilder().setLenient().create();
 
@@ -42,30 +52,56 @@ public class MainActivity extends AppCompatActivity {
                 .baseUrl(BASE_URL)
                 .addConverterFactory(GsonConverterFactory.create(gson))
                 .build();
-        loadData();
-    }
-    private void loadData(){
-        WeatherApi weatherApi = retrofit.create(WeatherApi.class);
-        Call<List<WeatherModel>> call = weatherApi.getData();
-        call.enqueue(new Callback<List<WeatherModel>>() {
-            @Override
-            public void onResponse(Call<List<WeatherModel>> call, Response<List<WeatherModel>> response) {
-                // başarılı olursa
-                if (response.isSuccessful()){
-                    List<WeatherModel> responseList =response.body();
-                    weatherModels = new ArrayList<>(responseList);
-                    recyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this));
-                    recyclerViewAdapter = new RecyclerViewAdapter(weatherModels);
-                    recyclerView.setAdapter(recyclerViewAdapter);
-                }
 
-            }
+        // RecyclerView'ı düzenle ve adaptörü burada oluştur
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerViewAdapter = new RecyclerViewAdapter(weatherModels);
+        recyclerView.setAdapter(recyclerViewAdapter);
 
+        loadButton = findViewById(R.id.loadButton);
+        loadButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onFailure(Call<List<WeatherModel>> call, Throwable t) {
-                //hata olursa
-                t.printStackTrace();
+            public void onClick(View v) {
+                // "Yükle" butonuna tıklandığında loadData metodunu çağır
+                loadData();
             }
         });
     }
+
+    private void loadData() {
+        WeatherApi weatherApi = retrofit.create(WeatherApi.class);
+
+        String cityName = editTextCity.getText().toString();
+
+        if (!cityName.isEmpty()) {
+            Call<WeatherModel> call = weatherApi.getData(cityName);
+            call.enqueue(new Callback<WeatherModel>() {
+                @Override
+                public void onResponse(Call<WeatherModel> call, Response<WeatherModel> response) {
+                    if (response.isSuccessful()) {
+                        WeatherModel weatherModel = response.body();
+                        if (weatherModel != null) {
+                            // Tek bir hava durumu öğesi olduğu için listeyi temizle ve ekleyebiliriz.
+                            weatherModels.clear();
+                            weatherModels.add(weatherModel);
+                            recyclerViewAdapter.notifyDataSetChanged();
+                        } else {
+                            Log.e("RetrofitError", "API'den boş veya geçersiz veri döndü.");
+                        }
+                    } else {
+                        Log.e("RetrofitError", "API çağrısı başarısız: " + response.code());
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<WeatherModel> call, Throwable t) {
+                    t.printStackTrace();
+                    Log.e("RetrofitError", "Retrofit hatası: " + t.getMessage());
+                }
+            });
+        } else {
+            Toast.makeText(this, "Lütfen bir şehir adı girin.", Toast.LENGTH_SHORT).show();
+        }
+    }
+
 }

@@ -1,30 +1,40 @@
-package com.burakturker.weatherapp.model;
+    package com.burakturker.weatherapp.model;
 
-import com.google.gson.annotations.SerializedName;
+    import com.google.gson.annotations.SerializedName;
 
-public class WeatherModel {
+    public class WeatherModel {
 
-    @SerializedName("temperature")
-    public String Derece;
+        @SerializedName("temp_c")
+        public double Derece;
 
-    @SerializedName("wind_speed")
-    public String ruzgarHiz;
+        @SerializedName("wind_mph")
+        public double ruzgarHiz;
 
-    @SerializedName("wind_degree")
-    public   String ruzgarDerece;
+        @SerializedName("wind_degree")
+        public   int ruzgarDerece;
 
-    @SerializedName("pressure")
-     public String basinc;
+        @SerializedName("pressure_mb")
+        public double basinc;
 
-    @SerializedName("humidity")
-    public String nem;
+        @SerializedName("humidity")
+        public int nem;
 
-    @SerializedName("weather_descriptions")
-    public String havaDurumAciklama;
+        @SerializedName("text")
+        public String havaDurumAciklama;
 
-    @SerializedName("name")
-    public String isim;
+        @SerializedName("name")
+        public String isim;
 
-    @SerializedName("weather_icons")
-    public String havaDurumIcon;
-}
+        @SerializedName("icon")
+        public String havaDurumIcon;
+        public WeatherModel(double derece, double ruzgarHiz, int ruzgarDerece, double basinc, int nem, String havaDurumAciklama, String isim, String havaDurumIcon) {
+            this.Derece = derece;
+            this.ruzgarHiz = ruzgarHiz;
+            this.ruzgarDerece = ruzgarDerece;
+            this.basinc = basinc;
+            this.nem = nem;
+            this.havaDurumAciklama = havaDurumAciklama;
+            this.isim = isim;
+            this.havaDurumIcon = havaDurumIcon;
+        }
+    }

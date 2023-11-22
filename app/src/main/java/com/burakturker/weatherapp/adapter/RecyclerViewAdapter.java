@@ -14,10 +14,16 @@ import com.burakturker.weatherapp.R;
 import com.burakturker.weatherapp.model.WeatherModel;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.RowHolder> {
     private ArrayList<WeatherModel> weatherList;
     private String[] BackGround = {"#1e90ff","#9932cc","#00008b"};
+    public void setWeatherList(List<WeatherModel> weatherList) {
+        this.weatherList.clear();
+        this.weatherList.addAll(weatherList);
+    }
+
 
     public RecyclerViewAdapter(ArrayList<WeatherModel> weatherList) {
         this.weatherList = weatherList;
@@ -33,7 +39,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
 
     @Override
     public void onBindViewHolder(@NonNull RowHolder holder, int position) {
-    holder.bind(weatherList.get(position),BackGround,position);
+        holder.bind(weatherList.get(position),BackGround,position);
     }
 
     @Override
@@ -52,11 +58,11 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         }
         public  void bind(WeatherModel weatherModel,String[] BackGround,Integer position){
             itemView.setBackgroundColor(Color.parseColor(BackGround[position % 3]));
-            textName = itemView.findViewById(R.id.txtViewName);
-            textTemp = itemView.findViewById(R.id.txtViewTemp);
-            ImgIcon = itemView.findViewById(R.id.imgVievİcon);
+            textName = itemView.findViewById(R.id.RowLayoutTxtName);
+            textTemp = itemView.findViewById(R.id.RowLayoutTxtTemp);
+            ImgIcon = itemView.findViewById(R.id.RowLayoutImageView);
             textName.setText(weatherModel.isim);
-            textTemp.setText(weatherModel.Derece);
+            textTemp.setText(String.valueOf((int) weatherModel.Derece));
             //ImgIcon.setImageIcon(weatherModel.havaDurumIcon);
         }
     }
