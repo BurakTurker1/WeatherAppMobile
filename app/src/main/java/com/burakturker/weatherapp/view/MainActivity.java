@@ -20,7 +20,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -30,12 +29,13 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MainActivity extends AppCompatActivity {
     private ArrayList<WeatherModel> weatherModels;
-    private String BASE_URL = "http://api.weatherapi.com/v1/";
+    private final String BASE_URL = "http://api.weatherapi.com/v1/";
     private Retrofit retrofit;
     private RecyclerView recyclerView;
     private RecyclerViewAdapter recyclerViewAdapter;
-    private EditText editTextCity;  // EditText'i tanımladık
+    private EditText editTextCity;
     private Button loadButton;
+    private boolean isLoading = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,7 +53,6 @@ public class MainActivity extends AppCompatActivity {
                 .addConverterFactory(GsonConverterFactory.create(gson))
                 .build();
 
-        // RecyclerView'ı düzenle ve adaptörü burada oluştur
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerViewAdapter = new RecyclerViewAdapter(weatherModels);
         recyclerView.setAdapter(recyclerViewAdapter);
@@ -62,13 +61,18 @@ public class MainActivity extends AppCompatActivity {
         loadButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // "Yükle" butonuna tıklandığında loadData metodunu çağır
                 loadData();
             }
         });
     }
 
     private void loadData() {
+        if (isLoading) {
+            return;
+        }
+
+        isLoading = true;
+
         WeatherApi weatherApi = retrofit.create(WeatherApi.class);
 
         String cityName = editTextCity.getText().toString();
@@ -78,10 +82,11 @@ public class MainActivity extends AppCompatActivity {
             call.enqueue(new Callback<WeatherModel>() {
                 @Override
                 public void onResponse(Call<WeatherModel> call, Response<WeatherModel> response) {
+                    isLoading = false;
+
                     if (response.isSuccessful()) {
                         WeatherModel weatherModel = response.body();
                         if (weatherModel != null) {
-                            // Tek bir hava durumu öğesi olduğu için listeyi temizle ve ekleyebiliriz.
                             weatherModels.clear();
                             weatherModels.add(weatherModel);
                             recyclerViewAdapter.notifyDataSetChanged();
@@ -95,13 +100,15 @@ public class MainActivity extends AppCompatActivity {
 
                 @Override
                 public void onFailure(Call<WeatherModel> call, Throwable t) {
+                    isLoading = false;
+
                     t.printStackTrace();
                     Log.e("RetrofitError", "Retrofit hatası: " + t.getMessage());
                 }
             });
         } else {
+            isLoading = false;
             Toast.makeText(this, "Lütfen bir şehir adı girin.", Toast.LENGTH_SHORT).show();
         }
     }
-
 }
