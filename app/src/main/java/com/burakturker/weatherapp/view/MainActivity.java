@@ -1,120 +1,92 @@
-// MainActivity.java
 package com.burakturker.weatherapp.view;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.Toast;
-
+import android.widget.ImageView;
+import android.widget.TextView;
 import com.burakturker.weatherapp.R;
-import com.burakturker.weatherapp.adapter.RecyclerViewAdapter;
+import com.burakturker.weatherapp.adapter.WeatherApiClient;
 import com.burakturker.weatherapp.model.WeatherModel;
-import com.burakturker.weatherapp.service.WeatherApi;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-
-import java.util.ArrayList;
-
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MainActivity extends AppCompatActivity {
-    private ArrayList<WeatherModel> weatherModels;
-    private final String BASE_URL = "http://api.weatherapi.com/v1/";
-    private Retrofit retrofit;
-    private RecyclerView recyclerView;
-    private RecyclerViewAdapter recyclerViewAdapter;
-    private EditText editTextCity;
-    private Button loadButton;
-    private boolean isLoading = false;
+
+    private TextView temperatureTextView, descriptionTextView;
+    private ImageView weatherIconImageView;
+    private WeatherApiClient weatherApiClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        recyclerView = findViewById(R.id.recyclerView);
-        weatherModels = new ArrayList<>();
-        editTextCity = findViewById(R.id.editTextCity);
+        temperatureTextView = findViewById(R.id.temp);
+        descriptionTextView = findViewById(R.id.desc);
+        weatherIconImageView = findViewById(R.id.weather_image);
+        weatherApiClient = new WeatherApiClient();
 
-        Gson gson = new GsonBuilder().setLenient().create();
+        // Kullanıcıdan alınan şehir adı, burada örneğin "London" olarak alınmıştır.
+        String cityName = "London";
 
-        retrofit = new Retrofit.Builder()
-                .baseUrl(BASE_URL)
-                .addConverterFactory(GsonConverterFactory.create(gson))
-                .build();
+        // Hava durumu bilgilerini çekmek için API isteği yapılır.
+        getWeatherData(cityName);
+    }
 
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        recyclerViewAdapter = new RecyclerViewAdapter(weatherModels);
-        recyclerView.setAdapter(recyclerViewAdapter);
-
-        loadButton = findViewById(R.id.loadButton);
-        loadButton.setOnClickListener(new View.OnClickListener() {
+    private void getWeatherData(String cityName) {
+        Log.d("WeatherAppError", "getWeatherData: Şehir Adı - " + cityName);
+        Call<WeatherModel> call = weatherApiClient.getWeatherApi().getWeather(cityName, weatherApiClient.getApiKey());
+        call.enqueue(new Callback<WeatherModel>() {
             @Override
-            public void onClick(View v) {
-                loadData();
+            public void onResponse(Call<WeatherModel> call, Response<WeatherModel> response) {
+                if (response.isSuccessful()) {
+                    WeatherModel weatherModel = response.body();
+                    if (weatherModel != null) {
+                        Log.d("WeatherAppError", "getWeatherData: Başarılı - Weather Model null değil");
+                        displayWeatherData(weatherModel);
+                    } else {
+                        Log.e("WeatherAppError", "getWeatherData: API tarafından null bir WeatherModel döndü");
+                    }
+                } else {
+                    Log.e("WeatherAppError", "getWeatherData: API çağrısı başarılı değil. Hata kodu: " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<WeatherModel> call, Throwable t) {
+                // Hata durumu
+                Log.e("WeatherAppError", "getWeatherData: API çağrısı başarısız. Hata: " + t.getMessage());
             }
         });
     }
 
-    private void loadData() {
-        if (isLoading) {
-            return;
-        }
+    private void displayWeatherData(WeatherModel weatherModel) {
+        Log.d("WeatherAppError", "displayWeatherData: Hava Durumu Bilgileri Gösteriliyor");
+        // Hava durumu bilgilerini arayüze yerleştirme
+        temperatureTextView.setText(weatherModel.getTemperatureCelsius());
+        descriptionTextView.setText(weatherModel.getWeatherDescription());
 
-        isLoading = true;
+        // Hava durumu koduna göre icon seçimi
+        String weatherCode = weatherModel.getWeatherCode();
 
-        WeatherApi weatherApi = retrofit.create(WeatherApi.class);
+        // Örneğin, hava durumu kodunu kullanarak bir ikon seçimi yapabilirsiniz.
+        // Bu örnek kodda "weatherCode" ile ilgili bir ikon kaynağını seçme işlemi gerçekleştirilmiştir.
+        // Bu kısmı projenize uygun olarak özelleştirmeniz gerekebilir.
+        int iconResId = getIconResourceByWeatherCode(weatherCode);
+        weatherIconImageView.setImageResource(iconResId);
+    }
 
-        String cityName = editTextCity.getText().toString();
-
-        if (!cityName.isEmpty()) {
-            Call<WeatherModel> call = weatherApi.getData(cityName);
-            call.enqueue(new Callback<WeatherModel>() {
-
-                @Override
-                public void onResponse(Call<WeatherModel> call, Response<WeatherModel> response) {
-                    isLoading = false;
-
-                    if (response.isSuccessful()) {
-                        WeatherModel weatherModel = response.body();
-                        if (weatherModel != null) {
-                            Log.d("WeatherData", "City: " + weatherModel.isim);
-                            Log.d("WeatherData", "Temperature: " + weatherModel.Derece);
-                            Log.d("WeatherData", "Icon URL: " + weatherModel.havaDurumIcon);
-
-                            weatherModels.clear();
-                            weatherModels.add(weatherModel);
-                            recyclerViewAdapter.notifyDataSetChanged();
-                        } else {
-                            Log.e("RetrofitError", "API'den boş veya geçersiz veri döndü.");
-                        }
-                    } else {
-                        Log.e("RetrofitError", "API çağrısı başarısız: " + response.code());
-                    }
-                }
-
-
-                @Override
-                public void onFailure(Call<WeatherModel> call, Throwable t) {
-                    isLoading = false;
-
-                    t.printStackTrace();
-                    Log.e("RetrofitError", "Retrofit hatası: " + t.getMessage());
-                }
-            });
-        } else {
-            isLoading = false;
-            Toast.makeText(this, "Lütfen bir şehir adı girin.", Toast.LENGTH_SHORT).show();
+    // Hava durumu koduna göre ikon kaynağını döndüren örnek bir fonksiyon
+    private int getIconResourceByWeatherCode(String weatherCode) {
+        switch (weatherCode) {
+            case "1003": // Örnek olarak "1003" kodu için bir ikon
+                return R.drawable.ic_partly_cloudy;
+            // Diğer hava durumu kodları için gerekli case'leri ekleyebilirsiniz.
+            // Örnek olarak "ic_weather_sunny" yerine, projenizde kullanacağınız gerçek ikon kaynaklarını ekleyin.
+            default:
+                return R.drawable.ic_sunny_day; // Varsayılan ikon
         }
     }
 }

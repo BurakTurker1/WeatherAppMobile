@@ -1,40 +1,84 @@
-    package com.burakturker.weatherapp.model;
+package com.burakturker.weatherapp.model;
 
-    import com.google.gson.annotations.SerializedName;
+import com.google.gson.annotations.SerializedName;
 
-    public class WeatherModel {
+public class WeatherModel {
+
+    @SerializedName("current")
+    private CurrentWeather currentWeather;
+
+    @SerializedName("location")
+    private Location location;
+
+    public String getWeatherCode() {
+        if (currentWeather != null && currentWeather.getCondition() != null) {
+            return currentWeather.getCondition().getCode();
+        }
+        return null;
+    }
+
+    public String getWeatherDescription() {
+        if (currentWeather != null && currentWeather.getCondition() != null) {
+            return currentWeather.getCondition().getText();
+        }
+        return null;
+    }
+
+    public String getTemperatureCelsius() {
+        if (currentWeather != null) {
+            return currentWeather.getTemperatureCelsius();
+        }
+        return null;
+    }
+
+    public String getCityName() {
+        if (location != null) {
+            return location.getName();
+        }
+        return null;
+    }
+
+    public static class CurrentWeather {
+        @SerializedName("last_updated_epoch")
+        private long lastUpdatedEpoch;
 
         @SerializedName("temp_c")
-        public double Derece;
+        private String temperatureCelsius;
 
-        @SerializedName("wind_mph")
-        public double ruzgarHiz;
+        @SerializedName("condition")
+        private WeatherCondition condition;
 
-        @SerializedName("wind_degree")
-        public   int ruzgarDerece;
+        public String getTemperatureCelsius() {
+            return temperatureCelsius;
+        }
 
-        @SerializedName("pressure_mb")
-        public double basinc;
-
-        @SerializedName("humidity")
-        public int nem;
-
-        @SerializedName("text")
-        public String havaDurumAciklama;
-
-        @SerializedName("name")
-        public String isim;
-
-        @SerializedName("icon")
-        public String havaDurumIcon;
-        public WeatherModel(double derece, double ruzgarHiz, int ruzgarDerece, double basinc, int nem, String havaDurumAciklama, String isim, String havaDurumIcon) {
-            this.Derece = derece;
-            this.ruzgarHiz = ruzgarHiz;
-            this.ruzgarDerece = ruzgarDerece;
-            this.basinc = basinc;
-            this.nem = nem;
-            this.havaDurumAciklama = havaDurumAciklama;
-            this.isim = isim;
-            this.havaDurumIcon = havaDurumIcon;
+        public WeatherCondition getCondition() {
+            return condition;
         }
     }
+
+    public static class Location {
+        @SerializedName("name")
+        private String name;
+
+        public String getName() {
+            return name;
+        }
+    }
+
+    public static class WeatherCondition {
+        @SerializedName("text")
+        private String text;
+
+        @SerializedName("code")
+        private String code;
+
+        public String getText() {
+            return text;
+        }
+
+        public String getCode() {
+            return code;
+        }
+    }
+}
