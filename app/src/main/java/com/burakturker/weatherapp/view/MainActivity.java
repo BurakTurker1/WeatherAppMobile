@@ -3,35 +3,50 @@ package com.burakturker.weatherapp.view;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import com.burakturker.weatherapp.R;
 import com.burakturker.weatherapp.adapter.WeatherApiClient;
 import com.burakturker.weatherapp.model.WeatherModel;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity {
 
-    private TextView temperatureTextView, descriptionTextView;
+    private TextView temperatureTextView, descriptionTextView, town, search_edit;
     private ImageView weatherIconImageView;
     private WeatherApiClient weatherApiClient;
+    private FloatingActionButton floating_search;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        search_edit = findViewById(R.id.search_edit);
+        town = findViewById(R.id.town);
+        floating_search = findViewById(R.id.floating_search);
         temperatureTextView = findViewById(R.id.temp);
         descriptionTextView = findViewById(R.id.desc);
         weatherIconImageView = findViewById(R.id.weather_image);
         weatherApiClient = new WeatherApiClient();
 
-        // Kullanıcıdan alınan şehir adı, burada örneğin "London" olarak alınmıştır.
-        String cityName = "London";
+        floating_search.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String newCityName = search_edit.getText().toString();
+                getWeatherData(newCityName);
+                town.setText(newCityName);
+            }
+        });
 
-        // Hava durumu bilgilerini çekmek için API isteği yapılır.
+        // Başlangıç şehir adı
+        String cityName = "London";
         getWeatherData(cityName);
     }
 
